@@ -1,0 +1,5 @@
+module,mean_ms,median_ms,p95_ms,p99_ms,max_ms,min_ms,sample_count
+multimodal_fusion,0.098,0.092,0.193,0.246,0.259,0.0,13
+decision_engine,0.084,0.079,0.166,0.211,0.222,0.0,13
+alert_manager,0.056,0.053,0.11,0.14,0.148,0.0,13
+xai_explanation,0.042,0.039,0.083,0.105,0.111,0.0,13

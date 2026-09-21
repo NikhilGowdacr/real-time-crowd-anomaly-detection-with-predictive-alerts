@@ -1,0 +1,11 @@
+condition,description,system_state,anomaly_score,decision_stable,alert_behavior,recovered,status,notes
+Video Frame Dropout,Video feed completely unavailable while acoustic surveillance remains active,NORMAL,0.4,True,Audio fallback active without pipeline failure,True,PASS,Single-modality audio fallback functioned cleanly.
+Audio Packet Dropout,Microphone stream disconnected while camera feed remains operational,NORMAL,0.2,True,Video single-modality weighting re-normalized to 1.0,True,PASS,Video single-modality baseline preserved.
+Noisy Audio (0dB SNR),Acoustic spike with calm crowd video dynamics (false positive suppression),NORMAL,0.16,True,Audio Anomaly filtered by calm visual context,True,PASS,False positive suppression verified.
+Low Detection Confidence,Inference detections with high visual uncertainty (confidence = 0.30),NORMAL,0.55,True,Escalation prevented due to insufficient confidence,True,PASS,
+High Crowd Occlusion,"Severe spatial clustering (density = 2.5 people/m2, count = 65)",NORMAL,0.45,True,Dynamic threshold adjusted for elevated crowd vulnerability,True,PASS,
+Sudden Velocity Burst,Rapid kinetic dispersion and crowd scattering surge (dispersion = 0.85),HIGH_RISK,0.82,True,State escalated promptly to HIGH_RISK or EMERGENCY,True,PASS,
+Conflicting Modalities,Visual fight indicators present while acoustic environment reports calm ambient noise,EVALUATED,0.55,True,Uncorroborated weighted fusion applied; corroboration flag set to False,True,PASS,
+Missing Frames Sequence,Intermittent frame drops and timestamp discontinuity in video capture,NORMAL,0.25,True,Pipeline recovers cleanly without timestamp lockup,True,PASS,
+Camera Disconnect/Reconnect,"Camera disconnects temporarily, video drops, then resumes nominal streaming",ONLINE,0.2,True,Dynamic weights restored upon sensor restoration,True,PASS,
+Microphone Disconnect/Reconnect,"Audio feed drops temporarily, audio drops, then resumes nominal acoustic stream",ONLINE,0.2,True,Acoustic modality re-integrated seamlessly upon reconnection,True,PASS,

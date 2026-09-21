@@ -1,0 +1,274 @@
+# ==============================================================================
+# Configuration: Real-Time Crowd Anomaly Detection with Predictive Alerts
+# Research-Oriented Modular AI Surveillance System
+# ==============================================================================
+
+# Video Input Configuration
+video:
+  # Source: path ("data/videos/sample.mp4"), webcam index (0), RTSP URL, or "synthetic"
+  source: "synthetic"
+  width: 1280
+  height: 720
+  fps: 30
+  loop: true
+  auto_generate_synthetic: true
+
+# YOLO Person Detection Configuration
+detection:
+  # Model weight path or Ultralytics model tag: yolov8n.pt, yolov8s.pt, yolo11n.pt
+  model: "models/detection/yolov8n.pt"
+  weights_dir: "models/detection"
+  confidence: 0.40
+  iou_threshold: 0.45
+  # Device: "auto" (cuda if available, else cpu), "cuda", or "cpu"
+  device: "auto"
+  # Target class IDs (COCO class 0 is 'person')
+  classes: [0]
+  # Target image size for YOLO inference
+  imgsz: 640
+
+# Crowd Density Estimation Configuration
+density:
+  # Approximate ground/monitored area covered in frame (square meters)
+  frame_area_m2: 50.0
+  # Spatial grid division to detect localized clustering hotspots
+  grid_rows: 3
+  grid_cols: 3
+  # Density thresholds in persons per square meter
+  # <0.3: LOW, 0.3-0.8: MODERATE, 0.8-1.5: HIGH, >=1.5: OVERCROWDED
+  threshold_low: 0.3
+  threshold_moderate: 0.8
+  threshold_high: 1.5
+
+# Person Tracking Configuration (ByteTrack)
+tracking:
+  tracker_type: "bytetrack"
+  tracker_config: "models/tracking/bytetrack.yaml"
+  history_length: 30
+  speed_threshold: 25.0
+  direction_bins: 8
+  max_lost: 15
+  iou_threshold: 0.25
+
+# ==============================================================================
+# Safety Intelligence Subsystem (New Feature)
+# ==============================================================================
+
+# Weapon / Dangerous Object Detection Configuration
+weapon_detection:
+  enabled: true
+  model: "models/detection/weapon_model.pt"
+  confidence: 0.50
+  classes:
+    - firearm
+    - knife
+    - dangerous_object
+  simulate_for_demo: false
+
+# Fight & Abnormal Movement Detection Configuration
+fight_detection:
+  enabled: true
+  temporal_window: 20
+  suspicious_threshold: 0.50
+  emergency_threshold: 0.75
+  confirmation_frames: 5
+  cooldown_seconds: 10.0
+  proximity_threshold: 130.0
+
+# Multi-Evidence Safety Fusion Configuration
+safety_fusion:
+  crowd_weight: 0.25
+  fight_weight: 0.35
+  weapon_weight: 0.40
+  normal_threshold: 0.35
+  emergency_threshold: 0.70
+  correlation_multiplier: 1.25
+
+# False Positive Reduction and Alert Constraints
+alert:
+  confirmation_frames: 5
+  cooldown_seconds: 10.0
+
+# Behavioral Analysis (Phase 4 Vision Transformer / Swin / Kinematics)
+behavior:
+  enabled: true
+  model_type: "swin"                 # "swin" (Swin-T) or "vit" (ViT-B/16)
+  model_path: ""                     # Path to custom fine-tuned weights, or empty for feature extraction
+  sequence_length: 16                # Temporal frames in buffer
+  sample_rate: 4                     # Subsample 1 frame every 4 frames (CPU friendly)
+  confidence_threshold: 0.50
+  confirmation_frames: 5
+  smoothing_window: 10
+  speed_threshold: 18.0
+  dispersion_threshold: 2.5
+  convergence_threshold: 2.5
+
+# Behavior Fusion Configuration
+behavior_fusion:
+  kinematic_weight: 0.40
+  deep_model_weight: 0.60
+
+# Audio Processing Configuration (Phase 5)
+audio:
+  enabled: true
+  source: "microphone"               # "microphone", "synthetic", or path ("data/audio/sample.wav")
+  sample_rate: 16000
+  channels: 1
+  chunk_duration: 1.0                # Window duration in seconds
+  overlap: 0.5                       # 50% sliding overlap
+  n_fft: 1024
+  hop_length: 512
+  n_mels: 64
+  model_path: ""                     # Path to custom CNN audio weights, or empty for spectral baseline
+  confidence_threshold: 0.50
+  temporal_window: 5
+  confirmation_windows: 2
+  smoothing_window: 5
+  suspicious_threshold: 0.40
+  emergency_threshold: 0.70
+
+# Multimodal Fusion Configuration (Phase 6)
+fusion:
+  video_weight: 0.60
+  audio_weight: 0.40
+  density_sub_weight: 0.15
+  movement_sub_weight: 0.20
+  behavior_sub_weight: 0.25
+  fight_sub_weight: 0.20
+  weapon_sub_weight: 0.20
+  synergy_boost: 1.25
+  suppression_factor: 0.50
+  temporal_tolerance_seconds: 1.5
+  stale_timeout_seconds: 2.5
+  smoothing_window: 5
+
+# Intelligent Decision Engine Configuration (Phase 7)
+decision:
+  enabled: true
+  normal_threshold: 0.35      # Legacy compatibility
+  emergency_threshold: 0.70   # Legacy compatibility
+  cooldown_seconds: 5.0       # Legacy compatibility
+
+  # Hysteresis Escalation and De-escalation Thresholds
+  suspicious_enter: 0.45
+  suspicious_exit: 0.35
+  high_risk_enter: 0.65
+  high_risk_exit: 0.55
+  emergency_enter: 0.85
+  emergency_exit: 0.70
+
+  # Temporal Confirmation Quotas (Consecutive frames required)
+  suspicious_confirmation: 3
+  high_risk_confirmation: 3
+  emergency_confirmation: 2
+  recovery_confirmation: 5
+
+  # State Transition Cooldown / Debounce
+  transition_cooldown_seconds: 3.0
+
+  # Critical Safety Evidence Rules (Accelerated Escalation)
+  critical_evidence_enabled: true
+  critical_weapon_threshold: 0.90
+  critical_fight_threshold: 0.90
+  critical_multimodal_threshold: 0.90
+
+  # Context-Aware Dynamic Threshold Adaptation
+  dynamic_thresholds: true
+  max_threshold_adjustment: 0.10
+
+# Alert Management & Notification Configuration (Phase 8)
+alerts:
+  enabled: true
+  minimum_severity: WARNING
+  cooldown_seconds: 10.0
+  duplicate_window_seconds: 15.0
+  recovery_alert: false
+
+  channels:
+    console: true
+    hud: true
+    local_alarm: false
+    email: false
+    sms: false
+    push: false
+
+  escalation:
+    enabled: true
+    repeat_emergency_after_seconds: 30.0
+
+  # Legacy channel switches preserved for backward compatibility
+  enable_console: true
+  enable_visual: true
+  enable_sound: false
+  enable_sms: false
+  enable_email: false
+
+# Explainable AI (XAI) & Evidence Visualization Configuration (Phase 9)
+xai:
+  enabled: true
+  hud:
+    enabled: true
+    max_evidence_items: 4
+    show_confidence: true
+    show_scores: true
+    show_motion_vectors: true
+    show_dispersion_arrows: true
+  gradcam:
+    enabled: false                   # Disabled by default until trained neural weights attached
+  explanations:
+    max_items: 5
+    min_contribution_threshold: 0.01
+
+# Real-Time Monitoring Dashboard Configuration (Phase 10)
+dashboard:
+  enabled: true
+  host: "0.0.0.0"
+  port: 8501
+  max_history: 120
+  refresh_interval_seconds: 2.0
+  theme: "dark"
+  demo_mode_default: true
+
+# Database & Historical Event Persistence Configuration (Phase 11)
+database:
+  enabled: true
+  path: "data/crowd_anomaly.db"
+  auto_create: true
+  wal_mode: true
+  foreign_keys: true
+  busy_timeout_ms: 5000
+  retention_days: 90
+  persist_events: true
+  persist_alerts: true
+  persist_evidence: true
+  persist_system_metrics: false
+  metrics_persist_interval_seconds: 1.0
+
+# Academic Evaluation & Benchmarking Framework Configuration (Phase 12)
+evaluation:
+  enabled: true
+  dataset:
+    type: none
+    path: null
+    ground_truth_available: false
+  output_dir: "reports/evaluation"
+  synthetic:
+    enabled: true
+  threshold_sweep:
+    enabled: true
+  ablation:
+    enabled: true
+  robustness:
+    enabled: true
+  latency:
+    enabled: true
+  database_benchmark:
+    enabled: true
+
+# System Logging Configuration
+logging:
+  level: "INFO"
+  log_to_file: true
+  log_file: "logs/crowd_anomaly.log"
+
+

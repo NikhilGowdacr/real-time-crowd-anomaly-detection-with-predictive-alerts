@@ -1,0 +1,51 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# PyTorch / Ultralytics / Models
+*.pt
+*.pth
+*.onnx
+*.engine
+yolov8*.pt
+yolo11*.pt
+
+# Data & Datasets (store locally, ignore from git)
+data/videos/*
+!data/videos/.gitkeep
+!data/videos/video.mp4
+data/audio/*
+!data/audio/.gitkeep
+data/datasets/*
+!data/datasets/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+
+# Logs and databases
+logs/
+*.log
+*.sqlite
+*.db
+
+# Testing cache
+.pytest_cache/
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
