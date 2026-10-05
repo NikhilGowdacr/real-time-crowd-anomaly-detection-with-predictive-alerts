@@ -119,6 +119,41 @@ CUSTOM_CSS = """
     margin-right: 6px;
     display: inline-block;
 }
+
+/* Surveillance Monitor - Full-Width Theater Display */
+.block-container {
+    padding-top: 1.2rem !important;
+    padding-bottom: 2rem !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+    max-width: 98% !important;
+}
+[data-testid="stImage"] {
+    width: 100% !important;
+    display: flex;
+    justify-content: center;
+    background: #080B10;
+    border-radius: 8px;
+}
+[data-testid="stImage"] > img {
+    width: 100% !important;
+    min-height: 460px;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: 8px;
+    border: 2px solid #06B6D4;
+    background-color: #07090E;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(6, 182, 212, 0.2);
+}
+[data-testid="stVideo"] video {
+    width: 100% !important;
+    min-height: 460px;
+    max-height: 80vh;
+    border-radius: 8px;
+    border: 2px solid #06B6D4;
+    background-color: #07090E;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.7), 0 0 20px rgba(6, 182, 212, 0.2);
+}
 </style>
 """
 

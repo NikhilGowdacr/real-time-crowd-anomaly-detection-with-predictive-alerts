@@ -402,51 +402,91 @@ def main() -> None:
     with tab_live:
         render_risk_banner(snapshot)
 
-        # Upper Grid: Video & Crowd | Audio & Fusion
-        row1_left, row1_right = st.columns(2)
-        with row1_left:
-            if op_mode == "Video File Analysis":
-                st.markdown("#### 📹 Video Analysis Player")
-                col_vp1, col_vp2 = st.columns([1, 1])
-                with col_vp1:
-                    play_video = st.button("▶ Play Live AI Detection Stream", key="btn_play_stream", use_container_width=True)
-                with col_vp2:
-                    show_native = st.checkbox("Show Browser Native Player", value=False)
+        if op_mode == "Video File Analysis":
+            st.markdown("### 📹 Surveillance Command Monitor")
 
-                if show_native:
-                    st.video(str(video_target_path))
+            # High-visibility player mode switcher
+            mode_choice = st.radio(
+                "Player View",
+                ["🔴 Live AI Surveillance Stream (Real-Time Vision Pipeline)", "🎬 Native Browser Player (60 FPS Native)"],
+                horizontal=True,
+                label_visibility="collapsed",
+            )
 
+            if "Live AI Surveillance Stream" in mode_choice:
+                # Stream Controls & Performance Profile
+                c_btn, c_stop, c_perf, c_scale = st.columns([2, 1, 3, 2])
+                with c_btn:
+                    play_video = st.button("▶ Start Live AI Stream", key="btn_play_stream", type="primary", use_container_width=True)
+                with c_stop:
+                    stop_video = st.button("⏹ Stop", key="btn_stop_stream", use_container_width=True)
+                with c_perf:
+                    speed_mode = st.selectbox(
+                        "Performance Profile",
+                        ["⚡ Ultra-Smooth (25-30 FPS)", "🎯 High Precision (15-20 FPS)"],
+                        index=0,
+                    )
+                with c_scale:
+                    theater_view = st.checkbox("🖥️ Theater HD View", value=True)
+
+                if stop_video:
+                    st.session_state["stop_requested"] = True
+                elif play_video:
+                    st.session_state["stop_requested"] = False
+
+                # Full-width video container
                 video_box = st.empty()
                 metrics_box = st.empty()
 
-                if play_video:
+                if play_video and not st.session_state.get("stop_requested", False):
                     cap = cv2.VideoCapture(str(video_target_path))
                     if not cap.isOpened():
                         st.error(f"Could not open video file: {video_target_path}")
                     else:
+                        fps_val = cap.get(cv2.CAP_PROP_FPS) or 25.0
+                        stride = 2 if "Ultra-Smooth" in speed_mode else 1
+                        keyframe_stride = 3 if "Ultra-Smooth" in speed_mode else 1
+                        target_delay = (1.0 / max(fps_val, 15.0)) * stride
+                        target_w = 640
+
                         analyzers = get_video_analyzers(conf=conf_val)
                         detector, tracker, density_est, pose_analyzer, fight_detector, weapon_detector, fusion_engine = analyzers
                         frame_num = 0
-                        while cap.isOpened():
+                        last_det = None
+                        prev_fight = False
+                        fps_timer = time.perf_counter()
+                        fps_counter = 0
+                        live_fps = fps_val
+
+                        while cap.isOpened() and not st.session_state.get("stop_requested", False):
+                            t_start = time.perf_counter()
                             ret, frame = cap.read()
                             if not ret or frame is None:
                                 break
                             frame_num += 1
-                            if frame_num % 2 != 0:
+                            if frame_num % stride != 0:
                                 continue
+
+                            # Downscale frame for lightning-fast YOLO inference
                             h, w = frame.shape[:2]
-                            if w > 800:
-                                scale = 800.0 / w
-                                frame = cv2.resize(frame, (800, int(h * scale)))
-                                h, w = frame.shape[:2]
+                            if w > target_w:
+                                scale = target_w / float(w)
+                                infer_frame = cv2.resize(frame, (target_w, int(h * scale)))
+                            else:
+                                infer_frame = frame
+                            ih, iw = infer_frame.shape[:2]
 
                             curr_ts = time.time()
-                            det = detector.detect(frame)
-                            tracks = tracker.update(det, frame)
+
+                            # Keyframe detection: Run YOLO every keyframe_stride frames
+                            if frame_num % keyframe_stride == 0 or last_det is None:
+                                last_det = detector.detect(infer_frame)
+
+                            tracks = tracker.update(last_det, infer_frame)
                             dens = density_est.estimate(
-                                detection_points=det.bottom_centers,
-                                frame_width=w,
-                                frame_height=h,
+                                detection_points=last_det.bottom_centers,
+                                frame_width=iw,
+                                frame_height=ih,
                             )
                             kinematics = pose_analyzer.extract_features(tracks, timestamp=curr_ts)
                             fight_res = fight_detector.update(
@@ -455,7 +495,7 @@ def main() -> None:
                                 timestamp=curr_ts,
                             )
                             weapon_res = weapon_detector.detect(
-                                frame=frame,
+                                frame=infer_frame,
                                 tracked_persons=tracks,
                                 timestamp=curr_ts,
                             )
@@ -467,35 +507,73 @@ def main() -> None:
                                 timestamp=curr_ts,
                             )
 
-                            annotated = frame.copy()
+                            annotated = infer_frame.copy()
                             annotated = tracker.draw_tracks(annotated, tracks, draw_trajectory=True)
                             annotated = fight_detector.draw_fight_detections(annotated, fight_res)
                             annotated = weapon_detector.draw_detections(annotated, weapon_res)
-                            annotated_rgb = cv2.cvtColor(annotated, cv2.COLOR_BGR2RGB)
 
+                            # Compute live FPS
+                            fps_counter += 1
+                            if time.perf_counter() - fps_timer >= 0.5:
+                                live_fps = fps_counter / (time.perf_counter() - fps_timer)
+                                fps_counter = 0
+                                fps_timer = time.perf_counter()
+
+                            # Draw Sleek High-Tech Surveillance HUD directly on frame
+                            ah, aw = annotated.shape[:2]
+                            cv2.rectangle(annotated, (0, 0), (aw, 36), (15, 20, 28), -1)
+
+                            if fight_res.is_fight:
+                                status_hud = "EMERGENCY: VIOLENT ATTACK"
+                                hud_color = (0, 0, 255)
+                            elif fight_res.is_suspicious:
+                                status_hud = "WARNING: SUSPICIOUS ALTERCATION"
+                                hud_color = (0, 165, 255)
+                            else:
+                                status_hud = "MONITORING: NORMAL"
+                                hud_color = (0, 255, 128)
+
+                            cv2.putText(annotated, "CAM-01 [LIVE]", (12, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 2)
+                            cv2.putText(annotated, f"| {status_hud}", (150, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.55, hud_color, 2)
+                            cv2.putText(annotated, f"FPS: {live_fps:.1f} | TRACKS: {len(tracks)}", (max(10, aw - 220), 24), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 220, 240), 1)
+
+                            if fight_res.is_fight:
+                                cv2.rectangle(annotated, (0, ah - 34), (aw, ah), (0, 0, 200), -1)
+                                cv2.putText(annotated, f"CRITICAL: VIOLENT ATTACK DETECTED (CONF: {fight_res.fight_score*100:.0f}%)",
+                                            (max(10, aw // 2 - 250), ah - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.58, (255, 255, 255), 2)
+
+                            # Scale up for theater display if enabled (at least 1024px width for crisp visibility)
+                            if theater_view and aw < 1024:
+                                scale_up = 1024.0 / float(aw)
+                                disp_frame = cv2.resize(annotated, (1024, int(ah * scale_up)), interpolation=cv2.INTER_LINEAR)
+                            else:
+                                disp_frame = annotated
+
+                            annotated_rgb = cv2.cvtColor(disp_frame, cv2.COLOR_BGR2RGB)
                             risk_state = safety_res.status.value
-                            status_label = "🚨 EMERGENCY: VIOLENT ATTACK" if fight_res.is_fight else (
-                                "⚠️ SUSPICIOUS ALTERCATION" if fight_res.is_suspicious else (
-                                    f"NORMAL ({len(tracks)} tracked)"
-                                )
-                            )
 
+                            # Display large full-width image
                             video_box.image(
                                 annotated_rgb,
-                                caption=f"Frame #{frame_num} | People: {len(tracks)} | Safety: {safety_res.safety_score:.2f} | {status_label}",
+                                caption=f"Frame #{frame_num} | Live Stream Rate: {live_fps:.1f} FPS | Active Tracks: {len(tracks)} | Risk: {risk_state}",
                                 use_container_width=True,
                             )
 
-                            with metrics_box.container():
-                                st.markdown("#### 👥 Real-Time Threat & Crowd Dynamics")
-                                c1, c2, c3 = st.columns(3)
-                                c1.metric(label="Tracked Persons", value=str(len(tracks)))
-                                c2.metric(label="Fight / Attack Score", value=f"{fight_res.fight_score:.2f}")
-                                c3.metric(label="Threat Status", value=risk_state)
-                                if fight_res.is_fight:
-                                    st.error(f"🚨 VIOLENT ALTERCATION DETECTED! (Confidence: {fight_res.fight_score*100:.0f}%) | Implicated Tracks: {fight_res.involved_track_ids}")
-                                elif fight_res.is_suspicious:
-                                    st.warning(f"⚠️ Rapid convergence / abnormal proximity detected (Score: {fight_res.fight_score:.2f})")
+                            # Throttle metrics DOM update every 6 frames or on alert change to prevent browser DOM thrashing
+                            if frame_num % 6 == 0 or fight_res.is_fight != prev_fight:
+                                prev_fight = fight_res.is_fight
+                                with metrics_box.container():
+                                    st.markdown("#### 👥 Real-Time Threat & Crowd Dynamics")
+                                    m1, m2, m3, m4 = st.columns(4)
+                                    m1.metric(label="Tracked Persons", value=str(len(tracks)))
+                                    m2.metric(label="Fight / Attack Score", value=f"{fight_res.fight_score:.2f}")
+                                    m3.metric(label="Crowd Density", value=f"{dens.density_per_m2:.2f}/m²")
+                                    m4.metric(label="Threat Status", value=risk_state)
+
+                                    if fight_res.is_fight:
+                                        st.error(f"🚨 VIOLENT ALTERCATION DETECTED! (Confidence: {fight_res.fight_score*100:.0f}%) | Implicated Tracks: {fight_res.involved_track_ids}")
+                                    elif fight_res.is_suspicious:
+                                        st.warning(f"⚠️ Rapid convergence / abnormal proximity detected (Score: {fight_res.fight_score:.2f})")
 
                             snap = DashboardSnapshot(
                                 timestamp=curr_ts,
@@ -513,21 +591,48 @@ def main() -> None:
                                 movement_speed=kinematics.mean_speed,
                             )
                             state.add_snapshot(snap)
-                            time.sleep(0.04)
+
+                            # Dynamic millisecond pacing
+                            t_proc = time.perf_counter() - t_start
+                            remainder = target_delay - t_proc
+                            if remainder > 0.003:
+                                time.sleep(remainder)
+
                         cap.release()
+                        st.success("✅ Surveillance Stream Finished")
                 else:
-                    render_video_panel(snapshot)
+                    # Initial / Idle preview in Theater view
+                    if snapshot and snapshot.video_frame is not None:
+                        disp_init = snapshot.video_frame
+                        if theater_view and disp_init.shape[1] < 1024:
+                            scale_init = 1024.0 / disp_init.shape[1]
+                            disp_init = cv2.resize(disp_init, (1024, int(disp_init.shape[0] * scale_init)), interpolation=cv2.INTER_LINEAR)
+                        video_box.image(disp_init, caption="Surveillance Feed Standby | Click 'Start Live AI Stream' to begin live detection", use_container_width=True)
+                    else:
+                        render_video_panel(snapshot)
                     st.markdown("---")
                     render_crowd_metrics(snapshot)
+
             else:
+                # 60 FPS Native Browser Player Mode
+                st.markdown("#### 🎬 Native Hardware-Accelerated Video Player (60 FPS)")
+                st.caption("Native browser player provides instant full 60 FPS playback with timeline scrubbing, pause/resume, and fullscreen expansion.")
+                st.video(str(video_target_path))
+                st.markdown("---")
+                render_crowd_metrics(snapshot)
+
+        else:
+            # Default Two-Column Grid for Demo Simulation & Live Pipeline
+            row1_left, row1_right = st.columns(2)
+            with row1_left:
                 render_video_panel(snapshot)
                 st.markdown("---")
                 render_crowd_metrics(snapshot)
 
-        with row1_right:
-            render_audio_panel(snapshot)
-            st.markdown("---")
-            render_fusion_panel(snapshot)
+            with row1_right:
+                render_audio_panel(snapshot)
+                st.markdown("---")
+                render_fusion_panel(snapshot)
 
         st.markdown("---")
 
