@@ -209,8 +209,8 @@ def get_video_analyzers(conf: float = 0.40):
     detector = YOLOPersonDetector(model_path="models/detection/yolov8n.pt", confidence=conf)
     tracker = ByteTrackCrowdTracker(history_length=30, speed_threshold=12.0)
     density = CrowdDensityEstimator(frame_area_m2=50.0)
-    pose = PoseMovementAnalyzer(proximity_threshold=140.0, speed_threshold=10.0)
-    fight = FightDetector(temporal_window=15, suspicious_threshold=0.35, emergency_threshold=0.60, confirmation_frames=2)
+    pose = PoseMovementAnalyzer(proximity_threshold=80.0, speed_threshold=12.0)
+    fight = FightDetector(temporal_window=15, suspicious_threshold=0.45, emergency_threshold=0.70, confirmation_frames=4)
     weapon = WeaponDetector(model_path="models/detection/weapon_model.pt", confidence=conf)
     fusion = SafetyFusionEngine()
     return detector, tracker, density, pose, fight, weapon, fusion

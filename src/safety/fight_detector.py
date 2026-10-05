@@ -134,9 +134,12 @@ class FightDetector:
             persistence_ratio = count / len(self.history)
             avg_reciprocal = pair_reciprocal_sum[key] / count
 
-            # A fight exhibits high persistence (agents stay locked in close proximity)
-            # combined with violent reciprocal motion
-            pair_fight_indicator = (0.50 * persistence_ratio) + (0.50 * avg_reciprocal)
+            # A fight exhibits aggressive reciprocal motion (physical struggle / confrontation),
+            # amplified by temporal persistence (staying locked in altercation).
+            if avg_reciprocal < 0.20:
+                pair_fight_indicator = 0.0
+            else:
+                pair_fight_indicator = avg_reciprocal * (0.35 + 0.65 * persistence_ratio)
 
             if pair_fight_indicator > highest_pair_score:
                 highest_pair_score = pair_fight_indicator
@@ -149,10 +152,14 @@ class FightDetector:
         accel_factor = min(1.0, mean_recent_accel / 12.0)
 
         # Combined temporal fight score [0.0 - 1.0]
-        raw_fight_score = round(
-            0.70 * highest_pair_score + 0.30 * accel_factor,
-            3,
-        )
+        # Require interacting physical struggle before factoring acceleration
+        if highest_pair_score > 0.0:
+            raw_fight_score = round(
+                0.70 * highest_pair_score + 0.30 * accel_factor,
+                3,
+            )
+        else:
+            raw_fight_score = 0.0
 
         # 4. Consecutive-Frame Confirmation (False-Positive Suppression)
         if raw_fight_score >= self.suspicious_threshold:
