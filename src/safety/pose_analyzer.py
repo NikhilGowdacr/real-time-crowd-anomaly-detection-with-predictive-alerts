@@ -97,12 +97,15 @@ class PoseMovementAnalyzer:
                 timestamp=curr_time,
             )
 
-        speeds = [t.speed for t in tracked_persons]
-        accels = [t.acceleration for t in tracked_persons]
+        # Filter transient new tracks for outlier calculation to eliminate edge jitter
+        stable_tracks = [t for t in tracked_persons if getattr(t, "age", 3) >= 2]
+        eval_tracks = stable_tracks if stable_tracks else tracked_persons
+        speeds = [t.speed for t in eval_tracks]
+        accels = [t.acceleration for t in eval_tracks]
 
-        mean_speed = float(np.mean(speeds))
-        max_speed = float(np.max(speeds))
-        max_accel = float(np.max(accels))
+        mean_speed = float(np.mean(speeds)) if speeds else 0.0
+        max_speed = float(np.max(speeds)) if speeds else 0.0
+        max_accel = float(np.max(accels)) if accels else 0.0
 
         # 1. Pairwise Interaction Analysis
         interacting_pairs: List[InteractingPair] = []
@@ -111,10 +114,12 @@ class PoseMovementAnalyzer:
         for i in range(track_count):
             p1 = tracked_persons[i]
             cx1, cy1 = p1.history[-1] if p1.history else (0.0, 0.0)
+            b1 = getattr(p1, "current_bbox", np.zeros(4, dtype=np.float32))
 
             for j in range(i + 1, track_count):
                 p2 = tracked_persons[j]
                 cx2, cy2 = p2.history[-1] if p2.history else (0.0, 0.0)
+                b2 = getattr(p2, "current_bbox", np.zeros(4, dtype=np.float32))
 
                 dist = math.hypot(cx1 - cx2, cy1 - cy2)
                 pair_key = (min(p1.track_id, p2.track_id), max(p1.track_id, p2.track_id))
@@ -133,23 +138,39 @@ class PoseMovementAnalyzer:
                 if len(hist) >= 2:
                     convergence_rate = max(0.0, hist[-2] - hist[-1])
 
+                # Calculate bounding box edge-to-edge separation
+                dx = max(0.0, max(b1[0], b2[0]) - min(b1[2], b2[2]))
+                dy = max(0.0, max(b1[1], b2[1]) - min(b1[3], b2[3]))
+                bbox_dist = math.hypot(dx, dy)
+
                 # Reciprocal motion analysis:
-                # Interacting people moving towards each other or fighting show opposite velocity vectors
                 reciprocal_score = 0.0
-                vx1, vy1 = p1.velocity
-                vx2, vy2 = p2.velocity
+                vx1, vy1 = getattr(p1, "velocity", (0.0, 0.0))
+                vx2, vy2 = getattr(p2, "velocity", (0.0, 0.0))
                 dot_product = (vx1 * vx2) + (vy1 * vy2)
 
-                # If dot product is negative, headings oppose each other
-                if dot_product < -5.0 and dist < self.proximity_threshold:
+                # 1. Head-on opposing velocity confrontation
+                if dot_product < -5.0 and (dist < self.proximity_threshold or bbox_dist < 25.0):
                     relative_vel_mag = math.hypot(vx1 - vx2, vy1 - vy2)
                     reciprocal_score = min(1.0, relative_vel_mag / 25.0)
 
-                # Check proximity interaction
-                if dist <= self.proximity_threshold:
-                    # Enclosing union bounding box
-                    b1 = p1.current_bbox
-                    b2 = p2.current_bbox
+                # 2. Close physical contact struggle (assault, grapple, tackle, lunge)
+                if bbox_dist < 20.0 or dist < 65.0:
+                    p1_spd = getattr(p1, "speed", 0.0)
+                    p2_spd = getattr(p2, "speed", 0.0)
+                    p1_acc = getattr(p1, "acceleration", 0.0)
+                    p2_acc = getattr(p2, "acceleration", 0.0)
+                    max_contact_spd = max(p1_spd, p2_spd)
+                    max_contact_acc = max(p1_acc, p2_acc)
+
+                    if max_contact_spd >= 5.0 and max_contact_acc >= 3.0:
+                        struggle_score = min(1.0, (max_contact_spd / 15.0) * 0.5 + (max_contact_acc / 10.0) * 0.5)
+                        reciprocal_score = max(reciprocal_score, struggle_score)
+                    elif abs(p1_spd - p2_spd) >= 8.0:
+                        reciprocal_score = max(reciprocal_score, min(1.0, abs(p1_spd - p2_spd) / 16.0))
+
+                # Check proximity interaction (center proximity or overlapping/touching bboxes)
+                if dist <= self.proximity_threshold or bbox_dist < 20.0:
                     union_bbox = np.array([
                         min(b1[0], b2[0]),
                         min(b1[1], b2[1]),
@@ -158,16 +179,16 @@ class PoseMovementAnalyzer:
                     ], dtype=np.float32)
 
                     midpoint = ((cx1 + cx2) / 2.0, (cy1 + cy2) / 2.0)
-                    rel_speed = abs(p1.speed - p2.speed)
+                    rel_speed = abs(getattr(p1, "speed", 0.0) - getattr(p2, "speed", 0.0))
 
                     interacting_pairs.append(
                         InteractingPair(
                             track_id_1=p1.track_id,
                             track_id_2=p2.track_id,
-                            distance=dist,
-                            relative_speed=rel_speed,
-                            convergence_rate=convergence_rate,
-                            reciprocal_motion_score=reciprocal_score,
+                            distance=round(dist, 1),
+                            relative_speed=round(rel_speed, 2),
+                            convergence_rate=round(convergence_rate, 2),
+                            reciprocal_motion_score=round(reciprocal_score, 3),
                             center_point=midpoint,
                             union_bbox=union_bbox,
                         )

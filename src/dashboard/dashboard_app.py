@@ -209,10 +209,16 @@ def get_video_analyzers(conf: float = 0.40):
     detector = YOLOPersonDetector(model_path="models/detection/yolov8n.pt", confidence=conf)
     tracker = ByteTrackCrowdTracker(history_length=30, speed_threshold=12.0)
     density = CrowdDensityEstimator(frame_area_m2=50.0)
-    pose = PoseMovementAnalyzer(proximity_threshold=80.0, speed_threshold=12.0)
-    fight = FightDetector(temporal_window=15, suspicious_threshold=0.45, emergency_threshold=0.70, confirmation_frames=4)
+    pose = PoseMovementAnalyzer(proximity_threshold=80.0, speed_threshold=8.0, accel_threshold=5.0)
+    fight = FightDetector(temporal_window=15, suspicious_threshold=0.45, emergency_threshold=0.65, confirmation_frames=3)
     weapon = WeaponDetector(model_path="models/detection/weapon_model.pt", confidence=conf)
-    fusion = SafetyFusionEngine()
+    fusion = SafetyFusionEngine(
+        crowd_weight=0.20,
+        fight_weight=0.50,
+        weapon_weight=0.30,
+        normal_threshold=0.35,
+        emergency_threshold=0.65,
+    )
     return detector, tracker, density, pose, fight, weapon, fusion
 
 
@@ -523,10 +529,14 @@ def main() -> None:
                             ah, aw = annotated.shape[:2]
                             cv2.rectangle(annotated, (0, 0), (aw, 36), (15, 20, 28), -1)
 
-                            if fight_res.is_fight:
+                            is_emergency = (fight_res.is_fight or safety_res.status.value == "EMERGENCY")
+                            is_suspicious = (fight_res.is_suspicious or safety_res.status.value == "SUSPICIOUS")
+                            display_threat_score = max(fight_res.fight_score, safety_res.safety_score)
+
+                            if is_emergency:
                                 status_hud = "EMERGENCY: VIOLENT ATTACK"
                                 hud_color = (0, 0, 255)
-                            elif fight_res.is_suspicious:
+                            elif is_suspicious:
                                 status_hud = "WARNING: SUSPICIOUS ALTERCATION"
                                 hud_color = (0, 165, 255)
                             else:
@@ -537,9 +547,9 @@ def main() -> None:
                             cv2.putText(annotated, f"| {status_hud}", (150, 24), cv2.FONT_HERSHEY_SIMPLEX, 0.55, hud_color, 2)
                             cv2.putText(annotated, f"FPS: {live_fps:.1f} | TRACKS: {len(tracks)}", (max(10, aw - 220), 24), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 220, 240), 1)
 
-                            if fight_res.is_fight:
+                            if is_emergency:
                                 cv2.rectangle(annotated, (0, ah - 34), (aw, ah), (0, 0, 200), -1)
-                                cv2.putText(annotated, f"CRITICAL: VIOLENT ATTACK DETECTED (CONF: {fight_res.fight_score*100:.0f}%)",
+                                cv2.putText(annotated, f"CRITICAL: VIOLENT ATTACK DETECTED (CONF: {display_threat_score*100:.0f}%)",
                                             (max(10, aw // 2 - 250), ah - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.58, (255, 255, 255), 2)
 
                             # Scale up for theater display if enabled (at least 1024px width for crisp visibility)
@@ -560,20 +570,21 @@ def main() -> None:
                             )
 
                             # Throttle metrics DOM update every 6 frames or on alert change to prevent browser DOM thrashing
-                            if frame_num % 6 == 0 or fight_res.is_fight != prev_fight:
-                                prev_fight = fight_res.is_fight
+                            if frame_num % 6 == 0 or is_emergency != prev_fight:
+                                prev_fight = is_emergency
                                 with metrics_box.container():
                                     st.markdown("#### 👥 Real-Time Threat & Crowd Dynamics")
                                     m1, m2, m3, m4 = st.columns(4)
                                     m1.metric(label="Tracked Persons", value=str(len(tracks)))
-                                    m2.metric(label="Fight / Attack Score", value=f"{fight_res.fight_score:.2f}")
+                                    m2.metric(label="Fight / Attack Score", value=f"{display_threat_score:.2f}")
                                     m3.metric(label="Crowd Density", value=f"{dens.density_per_m2:.2f}/m²")
                                     m4.metric(label="Threat Status", value=risk_state)
 
-                                    if fight_res.is_fight:
-                                        st.error(f"🚨 VIOLENT ALTERCATION DETECTED! (Confidence: {fight_res.fight_score*100:.0f}%) | Implicated Tracks: {fight_res.involved_track_ids}")
-                                    elif fight_res.is_suspicious:
-                                        st.warning(f"⚠️ Rapid convergence / abnormal proximity detected (Score: {fight_res.fight_score:.2f})")
+                                    if is_emergency:
+                                        involved_str = f" | Implicated Tracks: {fight_res.involved_track_ids}" if fight_res.involved_track_ids else ""
+                                        st.error(f"🚨 VIOLENT ALTERCATION DETECTED! (Confidence: {display_threat_score*100:.0f}%){involved_str}")
+                                    elif is_suspicious:
+                                        st.warning(f"⚠️ Rapid convergence / abnormal proximity detected (Score: {display_threat_score:.2f})")
 
                             snap = DashboardSnapshot(
                                 timestamp=curr_ts,

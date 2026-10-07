@@ -136,7 +136,7 @@ class FightDetector:
 
             # A fight exhibits aggressive reciprocal motion (physical struggle / confrontation),
             # amplified by temporal persistence (staying locked in altercation).
-            if avg_reciprocal < 0.20:
+            if avg_reciprocal < 0.15:
                 pair_fight_indicator = 0.0
             else:
                 pair_fight_indicator = avg_reciprocal * (0.35 + 0.65 * persistence_ratio)
@@ -146,18 +146,32 @@ class FightDetector:
                 most_critical_pair = key
                 critical_bbox = pair_latest_bbox.get(key)
 
-        # 3. Sudden Velocity Variance and Acceleration Outliers across window
+        # 3. Sudden Velocity Variance and Kinetic Violence Outliers across window
+        recent_max_speeds = [f.max_individual_speed for f in self.history]
         recent_max_accels = [f.max_individual_accel for f in self.history]
-        mean_recent_accel = float(np.mean(recent_max_accels))
-        accel_factor = min(1.0, mean_recent_accel / 12.0)
+        mean_recent_spd = float(np.mean(recent_max_speeds)) if recent_max_speeds else 0.0
+        mean_recent_acc = float(np.mean(recent_max_accels)) if recent_max_accels else 0.0
+
+        kinetic_score = 0.0
+        if mean_recent_spd >= 10.0 and mean_recent_acc >= 5.0:
+            kinetic_score = min(1.0, (mean_recent_spd / 20.0) * 0.5 + (mean_recent_acc / 12.0) * 0.5)
+        elif mean_recent_spd >= 15.0:
+            kinetic_score = min(1.0, mean_recent_spd / 22.0)
 
         # Combined temporal fight score [0.0 - 1.0]
-        # Require interacting physical struggle before factoring acceleration
-        if highest_pair_score > 0.0:
-            raw_fight_score = round(
-                0.70 * highest_pair_score + 0.30 * accel_factor,
-                3,
-            )
+        if highest_pair_score > 0.0 and kinetic_score > 0.0:
+            raw_fight_score = min(1.0, 0.60 * highest_pair_score + 0.40 * kinetic_score + 0.15)
+        elif highest_pair_score > 0.0:
+            raw_fight_score = round(0.70 * highest_pair_score + 0.30 * min(1.0, mean_recent_acc / 12.0), 3)
+        elif kinetic_score >= 0.50:
+            raw_fight_score = round(kinetic_score * 0.85, 3)
+            # Implicate fastest track if no pair is established
+            if critical_bbox is None and tracked_persons:
+                fastest = max(tracked_persons, key=lambda t: getattr(t, "speed", 0.0), default=None)
+                if fastest is not None:
+                    critical_bbox = getattr(fastest, "current_bbox", None)
+                    if most_critical_pair is None and hasattr(fastest, "track_id"):
+                        most_critical_pair = (fastest.track_id,)
         else:
             raw_fight_score = 0.0
 

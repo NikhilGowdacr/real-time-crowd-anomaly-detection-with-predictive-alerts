@@ -175,15 +175,30 @@ class SafetyFusionEngine:
         if is_correlated:
             final_safety_score = min(1.0, base_safety_score * self.correlation_multiplier)
 
-        final_safety_score = round(final_safety_score, 3)
-
         # 3. Categorize Status
-        if final_safety_score >= self.emergency_threshold or is_correlated or (s_fight >= 0.80 and s_weapon > 0):
+        # Confirmed violent fight altercations or emergencies escalate status directly
+        if (
+            final_safety_score >= self.emergency_threshold
+            or is_correlated
+            or (s_fight >= 0.80 and s_weapon > 0)
+            or fight_result.is_fight
+            or fight_result.status == "EMERGENCY"
+        ):
             status = SafetyStatus.EMERGENCY
-        elif final_safety_score >= self.normal_threshold or s_fight >= 0.50 or s_weapon >= 0.50:
+            final_safety_score = max(final_safety_score, s_fight)
+        elif (
+            final_safety_score >= self.normal_threshold
+            or s_fight >= 0.50
+            or s_weapon >= 0.50
+            or fight_result.is_suspicious
+            or fight_result.status == "SUSPICIOUS"
+        ):
             status = SafetyStatus.SUSPICIOUS
+            final_safety_score = max(final_safety_score, round(s_fight * 0.85, 3))
         else:
             status = SafetyStatus.NORMAL
+
+        final_safety_score = round(final_safety_score, 3)
 
         # 4. Check Alert Cooldown
         time_since_last_alert = curr_time - self.last_alert_time
