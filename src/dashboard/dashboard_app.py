@@ -6,6 +6,9 @@ Provides an interactive operator terminal supporting live pipeline streaming,
 operator alert lifecycle actions, and deterministic 5-scenario demo mode.
 """
 
+import warnings
+warnings.filterwarnings("ignore")
+
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import time
@@ -604,11 +607,18 @@ def main() -> None:
                             risk_state = safety_res.status.value
 
                             # Display large full-width image
-                            video_box.image(
-                                annotated_rgb,
-                                caption=f"Frame #{frame_num} | Live Stream Rate: {live_fps:.1f} FPS | Active Tracks: {len(tracks)} | Risk: {risk_state}",
-                                use_container_width=True,
-                            )
+                            try:
+                                video_box.image(
+                                    annotated_rgb,
+                                    caption=f"Frame #{frame_num} | Live Stream Rate: {live_fps:.1f} FPS | Active Tracks: {len(tracks)} | Risk: {risk_state}",
+                                    width="stretch",
+                                )
+                            except TypeError:
+                                video_box.image(
+                                    annotated_rgb,
+                                    caption=f"Frame #{frame_num} | Live Stream Rate: {live_fps:.1f} FPS | Active Tracks: {len(tracks)} | Risk: {risk_state}",
+                                    use_container_width=True,
+                                )
 
                             # Throttle metrics DOM update every 6 frames or on alert change to prevent browser DOM thrashing
                             if frame_num % 6 == 0 or is_emergency != prev_fight:

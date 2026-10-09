@@ -1,6 +1,6 @@
 # Academic Evaluation & Benchmarking Report
 **System**: Real-Time Crowd Anomaly Detection with Predictive Alerts  
-**Evaluation Date**: 2026-09-13T11:38:04.186625+00:00  
+**Evaluation Date**: 2026-10-05T13:20:02.870187+00:00  
 **Configured Dataset**: `ControlledSyntheticDataset`  
 **Ground Truth Status**: ⚪ NOT CONFIGURED (Synthetic Provenance Only)
 
@@ -15,20 +15,20 @@
 
 | Pipeline Stage | Samples | Mean Latency (ms) | Median Latency (ms) | P95 Latency (ms) | Max Latency (ms) |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **multimodal_fusion** | 13 | 0.098 | 0.092 | 0.193 | 0.259 |
-| **decision_engine** | 13 | 0.084 | 0.079 | 0.166 | 0.222 |
-| **alert_manager** | 13 | 0.056 | 0.053 | 0.110 | 0.148 |
-| **xai_explanation** | 13 | 0.042 | 0.039 | 0.083 | 0.111 |
+| **multimodal_fusion** | 13 | 0.071 | 0.063 | 0.143 | 0.162 |
+| **decision_engine** | 13 | 0.061 | 0.054 | 0.122 | 0.139 |
+| **alert_manager** | 13 | 0.040 | 0.036 | 0.081 | 0.092 |
+| **xai_explanation** | 13 | 0.030 | 0.027 | 0.061 | 0.069 |
 
-**Effective Full-Pipeline FPS**: **3570.55 FPS** (Mean Frame Latency: 0.28 ms)
+**Effective Full-Pipeline FPS**: **4953.32 FPS** (Mean Frame Latency: 0.20 ms)
 
 ## Table 2: Sensor Modality Ablation Study
 
 | Configuration | Sensor Availability | Mean Score | Alert Count | Emergency Count | Mean Latency (ms) | Corroboration Rate |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Video Only** | Video 100% | Audio 0% | 0.210 | 1 | 1 | 0.11 | 0.00 |
-| **Audio Only** | Video 0% | Audio 100% | 0.193 | 0 | 0 | 0.06 | 0.00 |
-| **Multimodal Fusion** | Video 100% | Audio 100% | 0.210 | 1 | 1 | 0.10 | **0.40** |
+| **Video Only** | Video 100% | Audio 0% | 0.210 | 1 | 1 | 0.06 | 0.00 |
+| **Audio Only** | Video 0% | Audio 100% | 0.193 | 0 | 0 | 0.04 | 0.00 |
+| **Multimodal Fusion** | Video 100% | Audio 100% | 0.210 | 1 | 1 | 0.05 | **0.40** |
 
 *Findings*: Multimodal fusion demonstrates cross-modal corroboration synergy during critical incidents and suppression of isolated acoustic and visual spikes, providing enhanced operational decision stability.
 
@@ -54,18 +54,18 @@
 | Scenario ID | Scenario Name | Expected Behavior | Observed State | Score | Alert Severity | Latency (ms) | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | `SCEN-01` | Normal Crowd | Maintain NORMAL state without alert dispatch | `NORMAL` | 0.07 | `NONE` | 0.19 | **PASS** |
-| `SCEN-02` | Moderate Crowding | Remain within NORMAL or escalate smoothly to SUSPICIOUS | `NORMAL` | 0.17 | `NONE` | 0.17 | **PASS** |
-| `SCEN-03` | Rapid Movement | Escalate to SUSPICIOUS on crowd dispersal | `SUSPICIOUS` | 0.50 | `WARNING` | 0.43 | **PASS** |
-| `SCEN-04` | Suspicious Behavior | Sustain SUSPICIOUS state with elevated confidence | `SUSPICIOUS` | 0.55 | `WARNING` | 0.30 | **PASS** |
-| `SCEN-05` | Physical Struggle | Escalate to HIGH_RISK or EMERGENCY alert | `EMERGENCY` | 0.86 | `CRITICAL` | 0.74 | **PASS** |
-| `SCEN-06` | Audio Distress | Detect acoustic scream distress without visual fight | `SUSPICIOUS` | 0.50 | `WARNING` | 0.29 | **PASS** |
-| `SCEN-07` | Video-only Anomaly | Escalate safely on unimodal video stream | `HIGH_RISK` | 0.82 | `HIGH` | 0.26 | **PASS** |
-| `SCEN-08` | Audio-only Anomaly | Escalate safely on unimodal acoustic feed | `HIGH_RISK` | 0.72 | `WARNING` | 0.26 | **PASS** |
-| `SCEN-09` | Multimodal Corroboration | Corroborate cross-modal cues and accelerate escalation | `EMERGENCY` | 1.00 | `CRITICAL` | 0.38 | **PASS** |
-| `SCEN-10` | Conflicting Modalities | Suppress isolated audio spike due to calm crowd context | `NORMAL` | 0.18 | `NONE` | 0.11 | **PASS** |
-| `SCEN-11` | Stampede Outbreak | Immediate emergency escalation with CRITICAL alert | `EMERGENCY` | 1.00 | `CRITICAL` | 0.28 | **PASS** |
-| `SCEN-12` | Sensor Dropout | Maintain safe default baseline without system crash | `NORMAL` | 0.10 | `NONE` | 0.15 | **PASS** |
-| `SCEN-13` | Recovery | Transition through RECOVERY stabilization before clearing to NORMAL | `NORMAL` | 0.20 | `NONE` | 0.07 | **PASS** |
+| `SCEN-02` | Moderate Crowding | Remain within NORMAL or escalate smoothly to SUSPICIOUS | `NORMAL` | 0.17 | `NONE` | 0.09 | **PASS** |
+| `SCEN-03` | Rapid Movement | Escalate to SUSPICIOUS on crowd dispersal | `SUSPICIOUS` | 0.50 | `WARNING` | 0.18 | **PASS** |
+| `SCEN-04` | Suspicious Behavior | Sustain SUSPICIOUS state with elevated confidence | `SUSPICIOUS` | 0.55 | `WARNING` | 0.15 | **PASS** |
+| `SCEN-05` | Physical Struggle | Escalate to HIGH_RISK or EMERGENCY alert | `EMERGENCY` | 0.86 | `CRITICAL` | 0.16 | **PASS** |
+| `SCEN-06` | Audio Distress | Detect acoustic scream distress without visual fight | `SUSPICIOUS` | 0.50 | `WARNING` | 0.28 | **PASS** |
+| `SCEN-07` | Video-only Anomaly | Escalate safely on unimodal video stream | `HIGH_RISK` | 0.82 | `HIGH` | 0.25 | **PASS** |
+| `SCEN-08` | Audio-only Anomaly | Escalate safely on unimodal acoustic feed | `HIGH_RISK` | 0.72 | `WARNING` | 0.46 | **PASS** |
+| `SCEN-09` | Multimodal Corroboration | Corroborate cross-modal cues and accelerate escalation | `EMERGENCY` | 1.00 | `CRITICAL` | 0.37 | **PASS** |
+| `SCEN-10` | Conflicting Modalities | Suppress isolated audio spike due to calm crowd context | `NORMAL` | 0.18 | `NONE` | 0.09 | **PASS** |
+| `SCEN-11` | Stampede Outbreak | Immediate emergency escalation with CRITICAL alert | `EMERGENCY` | 1.00 | `CRITICAL` | 0.26 | **PASS** |
+| `SCEN-12` | Sensor Dropout | Maintain safe default baseline without system crash | `NORMAL` | 0.10 | `NONE` | 0.09 | **PASS** |
+| `SCEN-13` | Recovery | Transition through RECOVERY stabilization before clearing to NORMAL | `NORMAL` | 0.20 | `NONE` | 0.05 | **PASS** |
 
 ## Table 5: Threshold Sensitivity Analysis
 
@@ -87,11 +87,11 @@
 
 ## Memory & Resource Consumption
 
-- **Initial RSS Memory**: 285.86 MB
-- **Peak RSS Memory**: 285.86 MB
-- **Final RSS Memory**: 285.86 MB
+- **Initial RSS Memory**: 286.13 MB
+- **Peak RSS Memory**: 286.13 MB
+- **Final RSS Memory**: 286.13 MB
 - **Memory Delta**: 0.00 MB
-- **CPU Utilization**: 56.4%
+- **CPU Utilization**: 39.8%
 - **Bounded History Invariant**: `VERIFIED` (Zero unbounded growth)
 
 ## Validated Academic Claims

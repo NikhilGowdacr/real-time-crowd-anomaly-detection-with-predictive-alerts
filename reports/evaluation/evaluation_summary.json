@@ -1,6 +1,6 @@
 {
   "system_name": "Real-Time Crowd Anomaly Detection with Predictive Alerts",
-  "evaluation_date": "2026-09-13T11:38:04.186625+00:00",
+  "evaluation_date": "2026-10-05T13:20:02.870187+00:00",
   "dataset_name": "ControlledSyntheticDataset",
   "ground_truth_available": false,
   "ground_truth_status": "NOT_AVAILABLE",
@@ -291,50 +291,50 @@
     "module_latencies": {
       "multimodal_fusion": {
         "module": "multimodal_fusion",
-        "mean_ms": 0.098,
-        "median_ms": 0.092,
-        "p95_ms": 0.193,
-        "p99_ms": 0.246,
-        "max_ms": 0.259,
+        "mean_ms": 0.071,
+        "median_ms": 0.063,
+        "p95_ms": 0.143,
+        "p99_ms": 0.158,
+        "max_ms": 0.162,
         "min_ms": 0.0,
         "sample_count": 13
       },
       "decision_engine": {
         "module": "decision_engine",
-        "mean_ms": 0.084,
-        "median_ms": 0.079,
-        "p95_ms": 0.166,
-        "p99_ms": 0.211,
-        "max_ms": 0.222,
+        "mean_ms": 0.061,
+        "median_ms": 0.054,
+        "p95_ms": 0.122,
+        "p99_ms": 0.135,
+        "max_ms": 0.139,
         "min_ms": 0.0,
         "sample_count": 13
       },
       "alert_manager": {
         "module": "alert_manager",
-        "mean_ms": 0.056,
-        "median_ms": 0.053,
-        "p95_ms": 0.11,
-        "p99_ms": 0.14,
-        "max_ms": 0.148,
+        "mean_ms": 0.04,
+        "median_ms": 0.036,
+        "p95_ms": 0.081,
+        "p99_ms": 0.09,
+        "max_ms": 0.092,
         "min_ms": 0.0,
         "sample_count": 13
       },
       "xai_explanation": {
         "module": "xai_explanation",
-        "mean_ms": 0.042,
-        "median_ms": 0.039,
-        "p95_ms": 0.083,
-        "p99_ms": 0.105,
-        "max_ms": 0.111,
+        "mean_ms": 0.03,
+        "median_ms": 0.027,
+        "p95_ms": 0.061,
+        "p99_ms": 0.068,
+        "max_ms": 0.069,
         "min_ms": 0.0,
         "sample_count": 13
       }
     },
-    "mean_e2e_ms": 0.28,
-    "median_e2e_ms": 0.263,
-    "p95_e2e_ms": 0.552,
-    "max_e2e_ms": 0.74,
-    "effective_fps": 3570.55,
+    "mean_e2e_ms": 0.202,
+    "median_e2e_ms": 0.181,
+    "p95_e2e_ms": 0.407,
+    "max_e2e_ms": 0.462,
+    "effective_fps": 4953.32,
     "sample_count": 13,
     "status": "AVAILABLE",
     "source": "PERFORMANCE_BENCHMARK",
@@ -344,42 +344,42 @@
     {
       "module": "Phase 6: Multimodal Fusion",
       "iterations": 100,
-      "total_time_s": 0.0056,
-      "mean_ms": 0.0559,
-      "p95_ms": 0.0691,
-      "throughput_hz": 17709.1
+      "total_time_s": 0.0014,
+      "mean_ms": 0.0143,
+      "p95_ms": 0.0185,
+      "throughput_hz": 69405.9
     },
     {
       "module": "Phase 7: Decision Engine",
       "iterations": 100,
-      "total_time_s": 0.0016,
-      "mean_ms": 0.0163,
-      "p95_ms": 0.019,
-      "throughput_hz": 60753.3
+      "total_time_s": 0.0008,
+      "mean_ms": 0.0083,
+      "p95_ms": 0.0084,
+      "throughput_hz": 119474.3
     },
     {
       "module": "Phase 9: Explainable AI",
       "iterations": 100,
-      "total_time_s": 0.0029,
-      "mean_ms": 0.0284,
-      "p95_ms": 0.0318,
-      "throughput_hz": 34936.9
+      "total_time_s": 0.0026,
+      "mean_ms": 0.0254,
+      "p95_ms": 0.0457,
+      "throughput_hz": 39064.0
     },
     {
       "module": "Phase 10: Dashboard Adapter",
       "iterations": 100,
-      "total_time_s": 0.0014,
-      "mean_ms": 0.0138,
-      "p95_ms": 0.0158,
-      "throughput_hz": 71968.3
+      "total_time_s": 0.0009,
+      "mean_ms": 0.0089,
+      "p95_ms": 0.012,
+      "throughput_hz": 111619.6
     }
   ],
   "resource_usage": {
-    "initial_memory_mb": 285.86,
-    "final_memory_mb": 285.86,
-    "peak_memory_mb": 285.86,
+    "initial_memory_mb": 286.13,
+    "final_memory_mb": 286.13,
+    "peak_memory_mb": 286.13,
     "memory_delta_mb": 0.0,
-    "cpu_percent": 56.4,
+    "cpu_percent": 39.8,
     "history_bounded": true,
     "status": "AVAILABLE",
     "source": "PERFORMANCE_BENCHMARK",
@@ -514,7 +514,7 @@
       "mean_score": 0.2097,
       "alert_count": 1,
       "emergency_count": 1,
-      "mean_latency_ms": 0.112,
+      "mean_latency_ms": 0.06,
       "corroboration_rate": 0.0,
       "sensor_availability": "Video 100% | Audio 0%",
       "ground_truth_metrics": "NOT_AVAILABLE (Ground truth unconfigured)"
@@ -524,7 +524,7 @@
       "mean_score": 0.1931,
       "alert_count": 0,
       "emergency_count": 0,
-      "mean_latency_ms": 0.061,
+      "mean_latency_ms": 0.038,
       "corroboration_rate": 0.0,
       "sensor_availability": "Video 0% | Audio 100%",
       "ground_truth_metrics": "NOT_AVAILABLE (Ground truth unconfigured)"
@@ -534,7 +534,7 @@
       "mean_score": 0.2098,
       "alert_count": 1,
       "emergency_count": 1,
-      "mean_latency_ms": 0.099,
+      "mean_latency_ms": 0.053,
       "corroboration_rate": 0.4,
       "sensor_availability": "Video 100% | Audio 100%",
       "ground_truth_metrics": "NOT_AVAILABLE (Ground truth unconfigured)"
@@ -555,7 +555,7 @@
       "score": 0.068,
       "confidence": 0.6463,
       "alert_severity": "NONE",
-      "latency_ms": 0.193,
+      "latency_ms": 0.19,
       "status": "PASS",
       "corroborated": false,
       "notes": "Nominal baseline pedestrian dynamics."
@@ -570,7 +570,7 @@
       "score": 0.165,
       "confidence": 0.6023,
       "alert_severity": "NONE",
-      "latency_ms": 0.17,
+      "latency_ms": 0.086,
       "status": "PASS",
       "corroborated": false,
       "notes": ""
@@ -585,7 +585,7 @@
       "score": 0.5,
       "confidence": 0.7975,
       "alert_severity": "WARNING",
-      "latency_ms": 0.427,
+      "latency_ms": 0.181,
       "status": "PASS",
       "corroborated": false,
       "notes": ""
@@ -600,7 +600,7 @@
       "score": 0.552,
       "confidence": 0.8157,
       "alert_severity": "WARNING",
-      "latency_ms": 0.298,
+      "latency_ms": 0.148,
       "status": "PASS",
       "corroborated": false,
       "notes": ""
@@ -615,7 +615,7 @@
       "score": 0.86,
       "confidence": 0.98,
       "alert_severity": "CRITICAL",
-      "latency_ms": 0.74,
+      "latency_ms": 0.159,
       "status": "PASS",
       "corroborated": true,
       "notes": ""
@@ -630,7 +630,7 @@
       "score": 0.502,
       "confidence": 0.7982,
       "alert_severity": "WARNING",
-      "latency_ms": 0.291,
+      "latency_ms": 0.279,
       "status": "PASS",
       "corroborated": false,
       "notes": ""
@@ -645,7 +645,7 @@
       "score": 0.82,
       "confidence": 0.8095,
       "alert_severity": "HIGH",
-      "latency_ms": 0.257,
+      "latency_ms": 0.254,
       "status": "PASS",
       "corroborated": false,
       "notes": ""
@@ -660,7 +660,7 @@
       "score": 0.72,
       "confidence": 0.6965,
       "alert_severity": "WARNING",
-      "latency_ms": 0.263,
+      "latency_ms": 0.462,
       "status": "PASS",
       "corroborated": false,
       "notes": ""
@@ -675,7 +675,7 @@
       "score": 1.0,
       "confidence": 0.98,
       "alert_severity": "CRITICAL",
-      "latency_ms": 0.38,
+      "latency_ms": 0.371,
       "status": "PASS",
       "corroborated": true,
       "notes": ""
@@ -690,7 +690,7 @@
       "score": 0.18,
       "confidence": 0.6075,
       "alert_severity": "NONE",
-      "latency_ms": 0.114,
+      "latency_ms": 0.091,
       "status": "PASS",
       "corroborated": false,
       "notes": ""
@@ -705,7 +705,7 @@
       "score": 1.0,
       "confidence": 0.98,
       "alert_severity": "CRITICAL",
-      "latency_ms": 0.281,
+      "latency_ms": 0.263,
       "status": "PASS",
       "corroborated": true,
       "notes": ""
@@ -720,7 +720,7 @@
       "score": 0.1,
       "confidence": 0.3813,
       "alert_severity": "NONE",
-      "latency_ms": 0.153,
+      "latency_ms": 0.095,
       "status": "PASS",
       "corroborated": false,
       "notes": ""
@@ -735,17 +735,17 @@
       "score": 0.2,
       "confidence": 0.8225,
       "alert_severity": "NONE",
-      "latency_ms": 0.074,
+      "latency_ms": 0.047,
       "status": "PASS",
       "corroborated": false,
       "notes": ""
     }
   ],
   "database_benchmark": {
-    "insert_latency_ms": 2.5021760002709925,
-    "insert_throughput_hz": 399.65214273164526,
-    "query_recent_ms": 1.093100057914853,
-    "statistics_aggregation_ms": 0.20249979570508003,
+    "insert_latency_ms": 3.047598000000562,
+    "insert_throughput_hz": 328.1272661288712,
+    "query_recent_ms": 2.9867999999169115,
+    "statistics_aggregation_ms": 0.4682999999658932,
     "alert_lifecycle_ms": 6.74,
     "evidence_batch_ms": 8.82,
     "evidence_throughput_hz": 56713.0,
