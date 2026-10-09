@@ -72,6 +72,17 @@ def get_data_provider() -> DashboardDataProvider:
     return st.session_state["data_provider"]
 
 
+def _open_video_capture(source: Any) -> cv2.VideoCapture:
+    """Safely opens video files, USB CC cameras (by integer index), or network RTSP/HTTP streams."""
+    if isinstance(source, int) or (isinstance(source, str) and source.isdigit()):
+        idx = int(source)
+        cap = cv2.VideoCapture(idx, cv2.CAP_DSHOW)
+        if not cap.isOpened():
+            cap = cv2.VideoCapture(idx)
+        return cap
+    return cv2.VideoCapture(str(source))
+
+
 def _seed_demo_database(api: HistoricalQueryAPI) -> None:
     """Populate temporary in-memory database with representative demo records."""
     t_now = datetime.now(timezone.utc)
@@ -255,13 +266,35 @@ def main() -> None:
             )
             auto_cycle = st.checkbox("Auto-cycle scenarios", value=False, help="Automatically rotate scenarios every few seconds.")
         elif op_mode == "Video File Analysis":
-            st.markdown("#### 🎬 Video Source")
+            st.markdown("#### 🎬 Video / Camera Feed")
             vid_source_type = st.selectbox(
-                "Video Source",
-                ["Project Video (data/videos/video.mp4)", "Custom File Path", "Upload Video File"],
+                "Feed Source",
+                [
+                    "Project Video (data/videos/video.mp4)",
+                    "Fight Test Video (data/videos/video1.mp4)",
+                    "Live CCTV / Web Camera (USB Device 0)",
+                    "Live CCTV / External Camera (USB Device 1)",
+                    "Live IP CCTV Camera (RTSP / Network Stream)",
+                    "Upload Video File",
+                    "Custom Path or RTSP URL",
+                ],
                 index=0,
+                help="Select local video, live USB CC camera, or IP CCTV stream."
             )
-            if vid_source_type == "Upload Video File":
+            if vid_source_type == "Live CCTV / Web Camera (USB Device 0)":
+                video_target_path = 0
+            elif vid_source_type == "Live CCTV / External Camera (USB Device 1)":
+                video_target_path = 1
+            elif vid_source_type == "Live IP CCTV Camera (RTSP / Network Stream)":
+                rtsp_url = st.text_input(
+                    "CCTV Stream URL (RTSP / HTTP)",
+                    value="rtsp://admin:admin123@192.168.1.100:554/stream1",
+                    help="Enter your IP CCTV camera RTSP URL or HTTP stream URL."
+                )
+                video_target_path = rtsp_url.strip()
+            elif vid_source_type == "Fight Test Video (data/videos/video1.mp4)":
+                video_target_path = str(resolve_path("data/videos/video1.mp4"))
+            elif vid_source_type == "Upload Video File":
                 uploaded_file = st.file_uploader("Upload Video File", type=["mp4", "avi", "mov", "mkv"])
                 if uploaded_file is not None:
                     upload_dir = Path("scratch/uploads")
@@ -272,9 +305,15 @@ def main() -> None:
                     video_target_path = str(target_file.resolve())
                 else:
                     video_target_path = str(resolve_path("data/videos/video.mp4"))
-            elif vid_source_type == "Custom File Path":
-                raw_path = st.text_input("Enter Path", value="data/videos/video.mp4")
-                video_target_path = str(resolve_path(raw_path))
+            elif vid_source_type == "Custom Path or RTSP URL":
+                raw_path = st.text_input("Enter Path, RTSP URL, or Camera Index (0, 1)", value="data/videos/video.mp4")
+                raw_path = raw_path.strip()
+                if raw_path.isdigit():
+                    video_target_path = int(raw_path)
+                elif raw_path.startswith(("rtsp://", "http://", "https://")):
+                    video_target_path = raw_path
+                else:
+                    video_target_path = str(resolve_path(raw_path))
             else:
                 video_target_path = str(resolve_path("data/videos/video.mp4"))
 
@@ -324,7 +363,7 @@ def main() -> None:
         snapshot = provider.create_demo_snapshot(scenario=selected_scenario)
     elif op_mode == "Video File Analysis":
         # Check if we already have a previous frame or load initial frame
-        cap_init = cv2.VideoCapture(str(video_target_path))
+        cap_init = _open_video_capture(video_target_path)
         if cap_init.isOpened():
             ret, frame = cap_init.read()
             cap_init.release()
@@ -445,11 +484,13 @@ def main() -> None:
                 metrics_box = st.empty()
 
                 if play_video and not st.session_state.get("stop_requested", False):
-                    cap = cv2.VideoCapture(str(video_target_path))
+                    cap = _open_video_capture(video_target_path)
                     if not cap.isOpened():
-                        st.error(f"Could not open video file: {video_target_path}")
+                        st.error(f"Could not connect to video/camera source: {video_target_path}. Please check device index or stream URL.")
                     else:
                         fps_val = cap.get(cv2.CAP_PROP_FPS) or 25.0
+                        if not fps_val or fps_val <= 0 or fps_val > 120:
+                            fps_val = 25.0
                         stride = 2 if "Ultra-Smooth" in speed_mode else 1
                         keyframe_stride = 3 if "Ultra-Smooth" in speed_mode else 1
                         target_delay = (1.0 / max(fps_val, 15.0)) * stride
@@ -627,8 +668,11 @@ def main() -> None:
             else:
                 # 60 FPS Native Browser Player Mode
                 st.markdown("#### 🎬 Native Hardware-Accelerated Video Player (60 FPS)")
-                st.caption("Native browser player provides instant full 60 FPS playback with timeline scrubbing, pause/resume, and fullscreen expansion.")
-                st.video(str(video_target_path))
+                is_live_stream = isinstance(video_target_path, int) or str(video_target_path).isdigit() or str(video_target_path).startswith(("rtsp://", "http://", "https://"))
+                if is_live_stream:
+                    st.info("ℹ️ Native browser player is for saved MP4 video files. Use the **Live AI Surveillance Stream** player above to monitor your live CC camera feed.")
+                else:
+                    st.video(str(video_target_path))
                 st.markdown("---")
                 render_crowd_metrics(snapshot)
 
