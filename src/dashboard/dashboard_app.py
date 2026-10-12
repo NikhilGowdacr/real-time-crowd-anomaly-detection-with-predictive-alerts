@@ -6,11 +6,18 @@ Provides an interactive operator terminal supporting live pipeline streaming,
 operator alert lifecycle actions, and deterministic 5-scenario demo mode.
 """
 
+import sys
 import warnings
+from pathlib import Path
+
 warnings.filterwarnings("ignore")
 
+# Ensure project root directory is always in sys.path regardless of execution directory
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
+if str(_PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(_PROJECT_ROOT))
+
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 import time
 from typing import Any, Dict, Optional, Tuple
 import streamlit as st
