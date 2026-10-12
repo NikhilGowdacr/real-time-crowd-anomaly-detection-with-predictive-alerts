@@ -3032,4 +3032,14 @@ def main():
 
 
 if __name__ == "__main__":
+    # If launched via `streamlit run main.py`, seamlessly delegate to the operator dashboard
+    try:
+        import streamlit as st
+        if hasattr(st, "runtime") and st.runtime.exists():
+            from src.dashboard.dashboard_app import main as run_dashboard
+            run_dashboard()
+            sys.exit(0)
+    except Exception:
+        pass
+
     main()
