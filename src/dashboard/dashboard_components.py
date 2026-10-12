@@ -103,14 +103,14 @@ def render_active_alert_card(
     with col_a:
         ack_disabled = is_ack or is_res
         btn_label = "✔ Acknowledged" if is_ack else "Acknowledge"
-        if st.button(btn_label, key=f"ack_{alert_id}", disabled=ack_disabled, use_container_width=True):
+        if st.button(btn_label, key=f"ack_{alert_id}", disabled=ack_disabled, width="stretch"):
             state.acknowledge_alert(alert_id, operator_id="operator_1")
             st.rerun()
 
     with col_b:
         res_disabled = is_res
         btn_label_res = "✔ Resolved" if is_res else "Resolve"
-        if st.button(btn_label_res, key=f"res_{alert_id}", disabled=res_disabled, use_container_width=True):
+        if st.button(btn_label_res, key=f"res_{alert_id}", disabled=res_disabled, width="stretch"):
             state.resolve_alert(alert_id, operator_id="operator_1", reason="Operator cleared alert")
             st.rerun()
 
@@ -127,7 +127,7 @@ def render_video_panel(snapshot: Optional[DashboardSnapshot]) -> None:
     """Render surveillance video stream with detections or honest offline fallback."""
     st.markdown("#### 📹 Live Video Stream")
     if snapshot and snapshot.video_frame is not None:
-        st.image(snapshot.video_frame, caption="Live Video Feed (OpenCV)", use_container_width=True)
+        st.image(snapshot.video_frame, caption="Live Video Feed (OpenCV)", width="stretch")
     else:
         st.markdown(
             '<div style="background: #11141C; border: 1px dashed #4B5563; border-radius: 8px; height: 260px; '
@@ -281,7 +281,7 @@ def render_alert_history_table(state: DashboardState) -> None:
         })
 
     df = pd.DataFrame(rows)
-    st.dataframe(df, use_container_width=True, hide_index=True)
+    st.dataframe(df, width="stretch", hide_index=True)
 
 
 def render_database_panel(
@@ -397,7 +397,7 @@ def render_database_panel(
                         "Corroborated": "YES" if e.corroborated else "NO",
                         "Reason": e.reason,
                     })
-                st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+                st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
             else:
                 st.caption("No historical events match the query criteria.")
         except Exception as exc:
@@ -420,7 +420,7 @@ def render_database_panel(
                         "Resolved At": a.resolved_at or "-",
                         "Reason": a.reason,
                     })
-                st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+                st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
             else:
                 st.caption("No historical alerts recorded.")
         except Exception as exc:
@@ -441,7 +441,7 @@ def render_database_panel(
                         "Video Source": s.video_source,
                         "Audio": "ON" if s.audio_enabled else "OFF",
                     })
-                st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+                st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
             else:
                 st.caption("No sessions recorded.")
         except Exception as exc:

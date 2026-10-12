@@ -334,12 +334,12 @@ def main() -> None:
         col_ctrl1, col_ctrl2 = st.columns(2)
         with col_ctrl1:
             pause_label = "▶ Resume" if state.paused else "⏸ Pause"
-            if st.button(pause_label, use_container_width=True):
+            if st.button(pause_label, width="stretch"):
                 state.paused = not state.paused
                 st.rerun()
 
         with col_ctrl2:
-            if st.button("🗑 Reset", use_container_width=True, help="Clear rolling telemetry buffer."):
+            if st.button("🗑 Reset", width="stretch", help="Clear rolling telemetry buffer."):
                 state.clear_history()
                 st.rerun()
 
@@ -472,9 +472,9 @@ def main() -> None:
                 # Stream Controls & Performance Profile
                 c_btn, c_stop, c_perf, c_scale = st.columns([2, 1, 3, 2])
                 with c_btn:
-                    play_video = st.button("▶ Start Live AI Stream", key="btn_play_stream", type="primary", use_container_width=True)
+                    play_video = st.button("▶ Start Live AI Stream", key="btn_play_stream", type="primary", width="stretch")
                 with c_stop:
-                    stop_video = st.button("⏹ Stop", key="btn_stop_stream", use_container_width=True)
+                    stop_video = st.button("⏹ Stop", key="btn_stop_stream", width="stretch")
                 with c_perf:
                     speed_mode = st.selectbox(
                         "Performance Profile",
@@ -676,7 +676,7 @@ def main() -> None:
                         if theater_view and disp_init.shape[1] < 1024:
                             scale_init = 1024.0 / disp_init.shape[1]
                             disp_init = cv2.resize(disp_init, (1024, int(disp_init.shape[0] * scale_init)), interpolation=cv2.INTER_LINEAR)
-                        video_box.image(disp_init, caption="Surveillance Feed Standby | Click 'Start Live AI Stream' to begin live detection", use_container_width=True)
+                        video_box.image(disp_init, caption="Surveillance Feed Standby | Click 'Start Live AI Stream' to begin live detection", width="stretch")
                     else:
                         render_video_panel(snapshot)
                     st.markdown("---")
